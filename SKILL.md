@@ -13,7 +13,7 @@ Do not add, delete, rewrite, reorder, summarize, translate, or correct visible r
 
 Keep the requested page count. Default to one portrait A4 page. Never achieve page fit by deleting text; adjust typography and spacing instead.
 
-## Default typography and work-direction style
+## Default typography and visual hierarchy
 
 Unless the user explicitly requests another typeface, use the bundled font assets and require this mapping in the exported PDF:
 
@@ -21,7 +21,9 @@ Unless the user explicitly requests another typeface, use the bundled font asset
 - Latin text and numerals in body paragraphs: `Noto Serif` Regular/Bold, with `Noto Sans CJK SC` as the Chinese fallback.
 - Do not accept silent substitution by PingFang, STSongti, Times New Roman, or another system font. Confirm the embedded font names with `pdffonts` after rendering.
 
-When a work-experience paragraph starts with `**方向**：`, keep `方向：` at the normal work-experience size and style only the visible text after the colon as compact metadata: `11.5px`, `#6B7280`, weight `500`, no background, border, padding, or border radius. Do not inject a space, CSS margin, or letter spacing after the colon. Preserve any whitespace that already exists in the Markdown because it is source content.
+Unless the user or visual reference explicitly requires another hierarchy, reserve the primary accent color for section headings, divider rules, and entry-level subheadings. Both work-experience and project-experience `h3` titles use the same accent-blue style. Bold text inside work descriptions, project descriptions, and list items uses `#202020` black at weight `700`; do not use the accent color for inline body emphasis.
+
+When a work-experience paragraph starts with `**方向**：`, keep `方向：` at the normal work-experience size with the label in black bold, and style only the visible text after the colon as compact metadata: `11.5px`, `#6B7280`, weight `500`, no background, border, padding, or border radius. Do not inject a space, CSS margin, or letter spacing after the colon. Preserve any whitespace that already exists in the Markdown because it is source content.
 
 ## Workflow
 
@@ -88,7 +90,7 @@ Prefer line-height and vertical rhythm changes over large font-size changes. Kee
 
 ## Template ownership
 
-Use `templates/reference-resume.html` as the default style owner. Its default visual language is a centered name, compact contact line, full-width accent rule, accent-colored section headings with thin rules, dark neutral body text, blue project headings, and selective keyword emphasis. Modify a copy of the template or expose additional script parameters when a reference requires a materially different structure.
+Use `templates/reference-resume.html` as the default style owner. Its default visual language is a centered name, compact contact line, full-width accent rule, accent-colored section headings with thin rules, matching blue work/project entry headings, dark neutral body text, and black inline bold emphasis. Modify a copy of the template or expose additional script parameters when a reference requires a materially different structure.
 
 The template owns the Noto font mapping and the `work-direction` / `direction-tag` rules. Keep the bundled files in `assets/fonts/`; `build_resume.py` copies them to `reference-resume-maker-fonts/` beside each generated HTML file so the editable output does not depend on fonts installed on the host system. If the user explicitly requests a different font, update both the font assets and `@font-face` mapping, then verify the actual PDF fonts rather than relying on CSS family names alone.
 
