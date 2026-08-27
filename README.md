@@ -6,6 +6,8 @@
 
 - 严格保留 Markdown 中的可见文字，不擅自增删、改写、翻译、纠错或调整顺序。
 - 支持参考 PDF/图片复刻版式、层级、字体、间距、分隔线和强调色。
+- 内置并嵌入 `Noto Sans CJK SC` 与 `Noto Serif`，避免 macOS/Windows/Linux 的系统字体替换造成版式漂移。
+- 工作经历中的“方向：”默认表现为紧凑的小号灰字元数据，无淡灰底、圆角、描边和额外冒号间距。
 - 支持指定十六进制主题色，例如 `#2B3C86`。
 - 支持 `compact`、`balanced`、`elegant` 三种排版密度。
 - 默认生成一页竖版 A4 简历；内容过长时通过字号、行距、间距和页边距调优，不删除文字。
@@ -29,6 +31,8 @@
 ├── README.md                        # 中文使用说明
 ├── requirements.txt                 # Python 依赖
 ├── reference-resume-maker.skill     # 可直接安装的技能包
+├── assets/
+│   └── fonts/                        # Noto 字体及 OFL 许可文件
 ├── references/
 │   ├── quality-gates.md             # 内容、页面、视觉与交付门禁
 │   └── style-analysis.md            # 参考版式分析方法
@@ -47,6 +51,8 @@
 - Google Chrome 或 Chromium
 - Poppler 工具：`pdftoppm`、`pdfinfo`、`pdftotext`
 - Python 包：`Markdown`、`beautifulsoup4`
+
+无需在系统中单独安装 Noto 字体。技能会把自带字体复制到 HTML 同目录下的 `reference-resume-maker-fonts/`，并通过 `@font-face` 固定使用。
 
 安装 Python 依赖：
 
@@ -111,6 +117,14 @@ git clone https://github.com/Moonquakesss/reference-resume-maker.git ~/.codex/sk
 ```text
 请使用 reference-resume-maker 优化这份简历的行高和模块间距，使页面更舒展，但仍保持一页 A4，并且不修改任何可见文字。
 ```
+
+## 默认字体与“方向”样式
+
+- 中文、姓名、栏目标题、联系信息、项目标题与中文强调文字：`Noto Sans CJK SC` Regular/Bold。
+- 正文英文和数字：`Noto Serif` Regular/Bold；中文字符回退到 `Noto Sans CJK SC`。
+- 默认不接受 PingFang、STSongti、Times New Roman 等系统字体替换；正式导出后应使用 `pdffonts` 核对实际嵌入字体。
+- 工作经历中的 `**方向**：` 会被自动识别。`方向：` 保持正文样式，冒号后的文字使用 `11.5px`、`#6B7280`、字重 `500`。
+- 冒号后不额外添加空格、外边距或字距；无底色、圆角、描边、内边距和阴影。Markdown 原文已有的空格仍会原样保留。
 
 ## Markdown 输入建议
 
@@ -207,7 +221,7 @@ python3 ~/.codex/skills/reference-resume-maker/scripts/verify_resume.py \
 | `--output` | HTML 输出路径 | 必填 |
 | `--theme-color` | 六位十六进制主题色 | `#2B3C86` |
 | `--density` | `compact`、`balanced` 或 `elegant` | `elegant` |
-| `--page-padding` | CSS 页边距，上、左右、下 | `19mm 18mm 8mm` |
+| `--page-padding` | CSS 页边距，上、左右、下 | `15mm 15mm 7mm` |
 | `--title` | HTML 文档标题 | 自动使用姓名 |
 
 ### 密度选择
@@ -223,6 +237,7 @@ python3 ~/.codex/skills/reference-resume-maker/scripts/verify_resume.py \
 ## 输出文件
 
 - `resume.html`：可直接用文本编辑器修改，也可在浏览器中预览。
+- `reference-resume-maker-fonts/`：HTML 使用的四个 Noto 字体文件；移动 HTML 时请一并保留此目录。
 - `resume.pdf`：无浏览器页眉、页脚、日期或 URL，可直接打印和投递。
 - `preview/page-*.png`：视觉检查用预览图。
 - `resume.verify.json`：页数、A4 尺寸和内容一致性校验结果。
@@ -235,8 +250,10 @@ python3 ~/.codex/skills/reference-resume-maker/scripts/verify_resume.py \
 2. PDF 页数符合要求，默认一页。
 3. 页面为 A4，且没有浏览器默认页眉页脚。
 4. HTML 与 PDF 的可见内容完整。
-5. 所有页面均已渲染为图片并完成视觉检查。
-6. 没有裁切、重叠、孤行、异常换行、层级混乱或明显失衡的页底留白。
+5. 默认字体实际嵌入 `NotoSansCJKsc-Regular/Bold` 与 `NotoSerif-Regular/Bold`，没有发生系统字体替换。
+6. “方向：”后的文字为紧凑小号灰字，且没有淡灰底、圆角或额外冒号间距。
+7. 所有页面均已渲染为图片并完成视觉检查。
+8. 没有裁切、重叠、孤行、异常换行、层级混乱或明显失衡的页底留白。
 
 ## 常见问题
 
@@ -264,7 +281,7 @@ python3 -m pip install Markdown beautifulsoup4
 
 ### PDF 中文字体显示异常
 
-系统应安装可用的中文字体。默认模板优先使用 `Noto Sans CJK SC`、`Noto Sans`，并回退到系统无衬线字体。
+确认 HTML 同目录存在 `reference-resume-maker-fonts/`，并包含四个 Noto 字体文件。重新运行 `build_resume.py` 可自动恢复该目录；随后重新导出 PDF，并用 `pdffonts` 确认没有被 PingFang、STSongti 或其他系统字体替换。
 
 ## 隐私说明
 
@@ -272,4 +289,4 @@ python3 -m pip install Markdown beautifulsoup4
 
 ## 许可说明
 
-本仓库目前未附加开源许可证。如需允许第三方复制、修改或分发，请由仓库所有者选择并添加合适的许可证。
+随技能分发的 Noto 字体采用 SIL Open Font License 1.1，许可文本位于 `assets/fonts/OFL-NotoSansCJK.txt` 与 `assets/fonts/OFL-NotoSerif.txt`。本仓库其余代码和文档目前未附加统一开源许可证；如需允许第三方复制、修改或分发，请由仓库所有者选择并添加合适的许可证。

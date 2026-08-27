@@ -2,10 +2,20 @@ from __future__ import annotations
 
 import argparse
 import re
+import shutil
 from pathlib import Path
 
 import markdown
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
+
+
+FONT_OUTPUT_DIR = "reference-resume-maker-fonts"
+FONT_FILES = (
+    "NotoSansCJKsc-Regular.otf",
+    "NotoSansCJKsc-Bold.otf",
+    "NotoSerif-Regular.ttf",
+    "NotoSerif-Bold.ttf",
+)
 
 
 DENSITY = {
@@ -89,6 +99,85 @@ def add_section_classes(soup: BeautifulSoup) -> None:
             node["class"] = list(node.get("class", [])) + [f"section-{slug}"]
 
 
+def mark_work_direction(soup: BeautifulSoup) -> None:
+    """Wrap only the text after the direction colon without changing characters."""
+    for paragraph in soup.find_all("p", class_="section-work"):
+        label = paragraph.find("strong", recursive=False)
+        if not label or label.get_text(strip=True) != "方向":
+            continue
+
+        direction_tag = None
+        for node in list(paragraph.contents):
+            if direction_tag is not None:
+                direction_tag.append(node.extract())
+                continue
+            if not isinstance(node, NavigableString):
+                continue
+
+            text = str(node)
+            positions = [text.find(mark) for mark in ("：", ":") if mark in text]
+            if not positions:
+                continue
+            split_at = min(positions)
+            before = NavigableString(text[: split_at + 1])
+            after = text[split_at + 1 :]
+            node.replace_with(before)
+
+            direction_tag = soup.new_tag("span")
+            direction_tag["class"] = ["direction-tag"]
+            if after:
+                direction_tag.append(NavigableString(after))
+            before.insert_after(direction_tag)
+
+        if direction_tag is not None:
+            classes = list(paragraph.get("class", []))
+            if "work-direction" not in classes:
+                classes.append("work-direction")
+            paragraph["class"] = classes
+
+
+def prepare_font_assets(output: Path) -> str:
+    source_dir = Path(__file__).resolve().parents[1] / "assets" / "fonts"
+    missing = [name for name in FONT_FILES if not (source_dir / name).is_file()]
+    if missing:
+        raise FileNotFoundError("Missing bundled font assets: " + ", ".join(missing))
+
+    target_dir = output.parent / FONT_OUTPUT_DIR
+    target_dir.mkdir(parents=True, exist_ok=True)
+    for name in FONT_FILES:
+        shutil.copy2(source_dir / name, target_dir / name)
+
+    base = "./" + FONT_OUTPUT_DIR
+    return f'''  @font-face {{
+    font-family: "Resume Noto Serif";
+    src: url("{base}/NotoSerif-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }}
+  @font-face {{
+    font-family: "Resume Noto Serif";
+    src: url("{base}/NotoSerif-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: block;
+  }}
+  @font-face {{
+    font-family: "Resume Noto Sans CJK SC";
+    src: url("{base}/NotoSansCJKsc-Regular.otf") format("opentype");
+    font-weight: 400 500;
+    font-style: normal;
+    font-display: block;
+  }}
+  @font-face {{
+    font-family: "Resume Noto Sans CJK SC";
+    src: url("{base}/NotoSansCJKsc-Bold.otf") format("opentype");
+    font-weight: 600 700;
+    font-style: normal;
+    font-display: block;
+  }}'''
+
+
 def collapse_personal_section(soup: BeautifulSoup) -> None:
     heading = soup.find("h2", string=lambda value: value and value.strip() == "个人信息")
     if not heading:
@@ -124,7 +213,7 @@ def main() -> int:
     parser.add_argument("--output", required=True, help="Output HTML path")
     parser.add_argument("--theme-color", default="#2B3C86", help="Six-digit hex accent color")
     parser.add_argument("--density", choices=sorted(DENSITY), default="elegant")
-    parser.add_argument("--page-padding", default="19mm 18mm 8mm")
+    parser.add_argument("--page-padding", default="15mm 15mm 7mm")
     parser.add_argument("--title", default="")
     args = parser.parse_args()
 
@@ -139,22 +228,24 @@ def main() -> int:
     )
     soup = BeautifulSoup(fragment, "html.parser")
     add_section_classes(soup)
+    mark_work_direction(soup)
     collapse_personal_section(soup)
 
     h1 = soup.find("h1")
     document_title = args.title or (h1.get_text(strip=True) + " - 简历" if h1 else source.stem)
     theme = normalize_hex(args.theme_color)
+    output.parent.mkdir(parents=True, exist_ok=True)
 
     values = {
         "DOCUMENT_TITLE": document_title,
         "THEME_COLOR": theme,
         "THEME_DARK": darken(theme),
         "PAGE_PADDING": args.page_padding,
+        "FONT_FACE_CSS": prepare_font_assets(output),
         "CONTENT_HTML": str(soup),
         **DENSITY[args.density],
     }
     html = fill_template(template_path.read_text(encoding="utf-8"), values)
-    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(html, encoding="utf-8")
     print(output)
     return 0

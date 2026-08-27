@@ -5,17 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{DOCUMENT_TITLE}}</title>
 <style>
+{{FONT_FACE_CSS}}
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   :root {
     --accent: {{THEME_COLOR}};
     --accent-dark: {{THEME_DARK}};
     --text: #333333;
     --text-soft: #515151;
+    --font-serif: "Resume Noto Serif";
+    --font-sans: "Resume Noto Sans CJK SC";
   }
   @page { size: A4; margin: 0; }
   html, body { margin: 0; padding: 0; background: #fff; }
   body {
-    font-family: "Noto Serif", "Noto Sans CJK SC", "Noto Sans", sans-serif;
+    font-family: var(--font-serif), var(--font-sans), serif;
+    font-synthesis: none;
     color: var(--text);
     font-size: {{BODY_FONT_SIZE}}px;
     line-height: {{BODY_LINE_HEIGHT}};
@@ -28,7 +32,7 @@
   }
   h1, h2, h3, p, ul, hr { margin: 0; }
   h1, .contact-block, .section-title, h3, p.section-education {
-    font-family: "Noto Sans CJK SC", "Noto Sans", sans-serif;
+    font-family: var(--font-sans), sans-serif;
   }
   h1 {
     text-align: center;
@@ -62,6 +66,16 @@
     color: #3f3f3f;
     font-size: 12.8px;
     text-align: center;
+  }
+  p.section-generic {
+    font-family: var(--font-sans), sans-serif;
+    color: #3f3f3f;
+    font-size: 12.8px;
+    text-align: center;
+    white-space: nowrap;
+    padding: 0 0 10px;
+    margin: 0 0 8px;
+    border-bottom: 2px solid var(--accent);
   }
   .contact-info strong { color: #2d2d2d; font-weight: 700; }
   .section-title {
@@ -97,6 +111,24 @@
   p.section-education { color: #333; line-height: 1.48; margin-bottom: 4px; }
   p.section-education strong { color: #202020; }
   p.section-work strong { color: var(--accent-dark); }
+  p.work-direction {
+    text-align: left;
+    margin-bottom: 4px;
+  }
+  .direction-tag {
+    display: inline;
+    color: #6B7280;
+    font-size: 11.5px;
+    line-height: 1.35;
+    font-weight: 500;
+    letter-spacing: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    white-space: nowrap;
+  }
   ul {
     color: var(--text-soft);
     margin: {{LIST_MARGIN}};

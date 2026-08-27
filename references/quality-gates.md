@@ -7,7 +7,9 @@
 | 源内容 | HTML DOM 可见文字与 Markdown 归一化后的文字顺序一致 | 运行 `verify_resume.py`，禁止手工复制或改写内容 |
 | 页面 | PDF 为用户要求的页数，默认 1 页；页面尺寸为 A4 | 调整密度档位、行高、间距和页边距，不删除文字 |
 | PDF 内容 | PDF 可见字符数量与字符全集和源内容一致 | 使用 `pdftotext` 的结果做字符数量与多重集合检查 |
+| 字体 | 默认样式的 PDF 嵌入 `NotoSansCJKsc-Regular/Bold` 与 `NotoSerif-Regular/Bold`，没有系统字体替换 | 运行 `pdffonts`；如出现 PingFang、STSongti、Times New Roman 等替代字体，检查 `@font-face` 和相邻字体资源目录后重新导出 |
 | 视觉 | 无裁切、重叠、孤行、异常换行、层级混乱或页底失衡 | 运行 `render_preview.py` 并查看所有交付页 |
+| 工作方向 | `方向：` 后为紧凑的小号灰字，没有底色、圆角、描边或额外冒号间距 | 检查 `.direction-tag` 与渲染预览；不得为修样式删除原文空格 |
 | 交付 | PDF 可打印，HTML 可编辑，文件名清晰 | 交付 PDF 和 HTML；内部保留验证 JSON |
 
 ## 单页调优顺序
